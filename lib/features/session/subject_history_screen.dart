@@ -132,8 +132,6 @@ class SubjectHistoryScreen extends ConsumerWidget {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text("Error deleting: $e")),
                             );
-                            // Refresh to bring it back if failed
-                            ref.refresh(sessionHistoryProvider(subjectName));
                           }
                         }
                       },
@@ -167,8 +165,10 @@ class SubjectHistoryScreen extends ConsumerWidget {
                               'id': session.id,
                               'subject': subjectName,
                             });
-                            // Refresh history when coming back
-                            ref.refresh(sessionHistoryProvider(subjectName));
+                            // Refresh history when coming back (SAFELY)
+                            if (context.mounted) {
+                              ref.refresh(sessionHistoryProvider(subjectName));
+                            }
                           },
                         ),
                       ),
@@ -213,8 +213,10 @@ class _StartNewButton extends ConsumerWidget {
             'id': null,
             'subject': subjectName,
           });
-          // Refresh history when coming back
-          ref.refresh(sessionHistoryProvider(subjectName));
+          // Refresh history when coming back (SAFELY)
+          if (context.mounted) {
+            ref.refresh(sessionHistoryProvider(subjectName));
+          }
         },
       ),
     );

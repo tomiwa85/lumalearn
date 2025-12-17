@@ -27,8 +27,11 @@ class ProfileScreen extends ConsumerWidget {
         ],
       ),
       body: profileAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.neonGreen)),
-        error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: AppTheme.neonGreen)),
+        error: (err, stack) => Center(
+            child:
+                Text('Error: $err', style: const TextStyle(color: Colors.red))),
         data: (profileData) {
           final isTeacher = profileData['role'] == 'teacher';
 
@@ -54,11 +57,8 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    child: Icon(
-                        isTeacher ? Icons.school : Icons.person,
-                        size: 50,
-                        color: Colors.white
-                    ),
+                    child: Icon(isTeacher ? Icons.school : Icons.person,
+                        size: 50, color: Colors.white),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -69,27 +69,33 @@ class ProfileScreen extends ConsumerWidget {
                   style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white
-                  ),
+                      color: Colors.white),
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                      color: isTeacher ? Colors.orangeAccent.withOpacity(0.2) : Colors.blueAccent.withOpacity(0.2),
+                      color: isTeacher
+                          ? Colors.orangeAccent.withOpacity(0.2)
+                          : Colors.blueAccent.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                          color: isTeacher ? Colors.orangeAccent : Colors.blueAccent,
-                          width: 1
-                      )
-                  ),
+                          color: isTeacher
+                              ? Colors.orangeAccent
+                              : Colors.blueAccent,
+                          width: 1)),
                   child: Text(
-                    isTeacher ? "Teacher Account" : "Student Account",
+                    isTeacher
+                        ? "Teacher Account"
+                        : (profileData['role'] == 'scout'
+                            ? "Parent Account"
+                            : "Student Account"),
                     style: TextStyle(
-                        color: isTeacher ? Colors.orangeAccent : Colors.blueAccent,
+                        color:
+                            isTeacher ? Colors.orangeAccent : Colors.blueAccent,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12
-                    ),
+                        fontSize: 12),
                   ),
                 ),
 
@@ -100,6 +106,15 @@ class ProfileScreen extends ConsumerWidget {
                   _ClassCodeCard(
                     code: profileData['class_code'],
                     className: profileData['class_name'] ?? "Your Class",
+                    titleText: "Share with Students",
+                  ),
+
+                // 4b. STUDENT SPECIFIC CARD (STUDENT CODE)
+                if (!isTeacher && profileData['student_code'] != null)
+                  _ClassCodeCard(
+                    code: profileData['student_code'],
+                    className: "Parent Access Code",
+                    titleText: "Share with Parent",
                   ),
 
                 // 5. STUDENT SPECIFIC INFO
@@ -116,11 +131,16 @@ class ProfileScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("ENROLLED IN", style: TextStyle(color: AppTheme.textGrey, fontSize: 10)),
+                        const Text("ENROLLED IN",
+                            style: TextStyle(
+                                color: AppTheme.textGrey, fontSize: 10)),
                         const SizedBox(height: 4),
                         Text(
                           profileData['class_name'] ?? "Not Enrolled",
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -135,8 +155,7 @@ class ProfileScreen extends ConsumerWidget {
                       text: "Manage Students",
                       onTap: () {
                         context.push('/manage-students');
-                      }
-                  ),
+                      }),
 
                 // --- REMOVED "Learning History" BUTTON HERE ---
 
@@ -179,8 +198,10 @@ class ProfileScreen extends ConsumerWidget {
 class _ClassCodeCard extends StatelessWidget {
   final String code;
   final String className;
+  final String titleText; // New parameter
 
-  const _ClassCodeCard({required this.code, required this.className});
+  const _ClassCodeCard(
+      {required this.code, required this.className, required this.titleText});
 
   @override
   Widget build(BuildContext context) {
@@ -200,15 +221,22 @@ class _ClassCodeCard extends StatelessWidget {
       child: Column(
         children: [
           Text(className.toUpperCase(),
-              style: const TextStyle(color: AppTheme.neonGreen, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
+              style: const TextStyle(
+                  color: AppTheme.neonGreen,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1)),
           const SizedBox(height: 10),
-          const Text("Share this code with your students:", style: TextStyle(color: Colors.white70, fontSize: 12)),
+          Text(titleText, // Use parameter
+              style: const TextStyle(color: Colors.white70, fontSize: 12)),
           const SizedBox(height: 8),
           GestureDetector(
             onTap: () {
               Clipboard.setData(ClipboardData(text: code));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Class code copied!"), duration: Duration(milliseconds: 1000)),
+                const SnackBar(
+                    content: Text("Class code copied!"),
+                    duration: Duration(milliseconds: 1000)),
               );
             },
             child: Container(
@@ -221,7 +249,12 @@ class _ClassCodeCard extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(code, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                  Text(code,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2)),
                   const SizedBox(width: 12),
                   const Icon(Icons.copy, color: AppTheme.neonGreen, size: 20),
                 ],
@@ -264,9 +297,11 @@ class _ProfileMenuItem extends StatelessWidget {
 }
 
 // --- PROVIDER LOGIC ---
-final userProfileProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+final userProfileProvider =
+    FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   final authState = ref.watch(authStateProvider);
-  final user = authState.value?.session?.user ?? ref.read(authServiceProvider).currentUser;
+  final user = authState.value?.session?.user ??
+      ref.read(authServiceProvider).currentUser;
 
   if (user == null) {
     throw Exception("No user logged in");
@@ -276,7 +311,7 @@ final userProfileProvider = FutureProvider.autoDispose<Map<String, dynamic>>((re
 
   final userData = await supabase
       .from('users')
-      .select('full_name, role, enrolled_class_id')
+      .select('full_name, role, enrolled_class_id, student_code')
       .eq('id', user.id)
       .single();
 
@@ -284,6 +319,7 @@ final userProfileProvider = FutureProvider.autoDispose<Map<String, dynamic>>((re
   Map<String, dynamic> result = {
     'full_name': userData['full_name'],
     'role': role,
+    'student_code': userData['student_code'],
   };
 
   if (role == 'teacher') {

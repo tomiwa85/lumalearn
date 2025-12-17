@@ -229,6 +229,26 @@ class ChatService {
       return [];
     }
   }
+
+  // 10. HELPER: Get latest session for a subject (for persistent chats like Parent/General)
+  Future<String?> getLatestSessionId(String subject) async {
+    if (_currentUserId == null) return null;
+    try {
+      final response = await _supabase
+          .from('chat_sessions')
+          .select('id')
+          .eq('user_id', _currentUserId!)
+          .eq('subject', subject)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+
+      return response?['id'] as String?;
+    } catch (e) {
+      print("Reference error fetching latest session: $e");
+      return null;
+    }
+  }
 }
 
 // --- PROVIDER ---

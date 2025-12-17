@@ -14,6 +14,7 @@ import '../../features/auth/login_screen.dart';
 import '../../features/profile/student_management_screen.dart';
 import '../../features/profile/student_detail_screen.dart';
 import '../../features/profile/scout_dashboard_screen.dart'; // [NEW]
+import '../../features/profile/scout_student_history_screen.dart'; // [NEW]
 // Updated Session Imports
 import '../../features/session/session_screen.dart';
 import '../../features/session/subject_history_screen.dart';
@@ -165,6 +166,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/scout-dashboard',
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const ScoutDashboardScreen(),
+      ),
+
+      // 5. SCOUT HISTORY
+      GoRoute(
+        path: '/scout-student-history',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) {
+          final params = state.extra as Map<String, dynamic>;
+          return ScoutStudentHistoryScreen(
+            studentId: params['studentId'],
+            studentName: params['studentName'],
+          );
+        },
       ),
     ],
   );
