@@ -1,219 +1,280 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lumalearn/core/theme/app_theme.dart';
+import 'package:lumalearn/features/auth/services/auth_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
-  // 1. DATA MODEL FOR SUBJECTS// This mimics the data structure defined in your design document (Section 6) [cite: 51]
-  // Later, we will fetch this list from Supabase.
-  final List<Map<String, dynamic>> _subjects = const [
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  String _searchQuery = '';
+
+  // Full list of subjects (Normal code structure, but with all courses)
+  final List<Map<String, dynamic>> _subjects = [
     {
-      "name": "Physics",
-      "progress": 0.75,
-      "color": Colors.blueAccent,
-      "icon": Icons.bolt,
-      "id": "phys_01"
+      'name': 'Mathematics',
+      'progress': 0.75,
+      'color': Colors.blueAccent,
+      'icon': Icons.calculate_outlined,
     },
     {
-      "name": "Math",
-      "progress": 0.60,
-      "color": Colors.tealAccent,
-      "icon": Icons.calculate,
-      "id": "math_01"
+      'name': 'Physics',
+      'progress': 0.45,
+      'color': Colors.purpleAccent,
+      'icon': Icons.science_outlined,
     },
     {
-      "name": "Chemistry",
-      "progress": 0.45,
-      "color": Colors.greenAccent,
-      "icon": Icons.science,
-      "id": "chem_01"
+      'name': 'Chemistry',
+      'progress': 0.30,
+      'color': Colors.orangeAccent,
+      'icon': Icons.biotech_outlined,
     },
     {
-      "name": "Biology",
-      "progress": 0.20,
-      "color": Colors.pinkAccent,
-      "icon": Icons.biotech,
-      "id": "bio_01"
+      'name': 'Biology',
+      'progress': 0.60,
+      'color': Colors.greenAccent,
+      'icon': Icons.grass_outlined,
+    },
+    {
+      'name': 'English',
+      'progress': 0.50,
+      'color': Colors.indigoAccent,
+      'icon': Icons.language_outlined,
+    },
+    {
+      'name': 'Economics',
+      'progress': 0.40,
+      'color': Colors.tealAccent,
+      'icon': Icons.trending_up,
+    },
+    {
+      'name': 'Civic Education',
+      'progress': 0.25,
+      'color': Colors.brown,
+      'icon': Icons.gavel_outlined,
+    },
+    {
+      'name': 'Literature',
+      'progress': 0.20,
+      'color': Colors.redAccent,
+      'icon': Icons.book_outlined,
+    },
+    {
+      'name': 'Further Mathematics',
+      'progress': 0.10,
+      'color': Colors.deepPurpleAccent,
+      'icon': Icons.functions,
+    },
+    {
+      'name': 'Geography',
+      'progress': 0.35,
+      'color': Colors.lightBlueAccent,
+      'icon': Icons.public,
+    },
+    {
+      'name': 'Agricultural Science',
+      'progress': 0.55,
+      'color': Colors.lightGreen,
+      'icon': Icons.agriculture_outlined,
+    },
+    {
+      'name': 'IT',
+      'progress': 0.80,
+      'color': Colors.cyanAccent,
+      'icon': Icons.computer_outlined,
     },
   ];
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundBlack,
-      // 2. UPDATED APP BAR WITH LOGO
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Row(
+  void _showAppInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surfaceGrey,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
           children: [
-            // The Logo Image
-            Container(
-              height: 32,
-              width: 32,
-              decoration: BoxDecoration(
-                image: const DecorationImage(
-                  image: AssetImage('assets/icons/icon_lumalearn.png'),
-                  fit: BoxFit.contain,
-                ),
-                // Subtle glow behind the small logo
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.neonGreen.withOpacity(0.4),
-                    blurRadius: 12,
-                  ),
-                ],
-              ),
+            Icon(Icons.auto_awesome, color: AppTheme.neonGreen),
+            SizedBox(width: 10),
+            Text("About LumaLearn", style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "LumaLearn is your AI-powered study companion.",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(width: 12),
-            // The App Name
-            const Text(
-              'LumaLearn',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-                color: Colors.white,
-                letterSpacing: 0.5,
-              ),
+            SizedBox(height: 10),
+            Text(
+              "• Chat with AI tutors for every subject.\n"
+                  "• Track your learning progress.\n"
+                  "• Teachers can manage classes and students.\n"
+                  "• Save your chat history for revision.",
+              style: TextStyle(color: AppTheme.textGrey, height: 1.5),
+            ),
+            SizedBox(height: 16),
+            Text(
+              "Version 1.0.0",
+              style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
           ],
         ),
         actions: [
-          // Help / About Icon
-          IconButton(
-            icon: const Icon(Icons.info_outline, color: AppTheme.textGrey),
-            onPressed: () {
-              // Show about dialog or help
-            },
-          )
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Close", style: TextStyle(color: AppTheme.neonGreen)),
+          ),
         ],
       ),
+    );
+  }
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 3. MAIN SEARCH BAR ("Ask LumaLearn")
-            // As described in UI Flow [cite: 45]
-            Container(
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+  @override
+  Widget build(BuildContext context) {
+    final user = ref.watch(authServiceProvider).currentUser;
+    final userName = user?.userMetadata?['full_name'] ?? 'Student';
+
+    final filteredSubjects = _subjects.where((subject) {
+      final name = subject['name'].toString().toLowerCase();
+      final query = _searchQuery.toLowerCase();
+      return name.contains(query);
+    }).toList();
+
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundBlack,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+
+              // --- 1. TOP BAR ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Left: Logo + Text
+                  Row(
+                    children: [
+                      Container(
+                        height: 32,
+                        width: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          image: const DecorationImage(
+                            image: AssetImage('assets/icons/icon_lumalearn.png'),
+                            fit: BoxFit.contain,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.neonGreen.withOpacity(0.4),
+                              blurRadius: 12,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'LumaLearn',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Right: Info Icon
+                  IconButton(
+                    icon: const Icon(Icons.info_outline, color: AppTheme.textGrey),
+                    onPressed: _showAppInfoDialog,
                   ),
                 ],
               ),
-              child: TextField(
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'What do you want to learn today?',
-                  hintStyle: TextStyle(color: Colors.grey[600]),
-                  prefixIcon: const Icon(Icons.search, color: AppTheme.neonGreen),
-                  filled: true,
-                  fillColor: AppTheme.surfaceGrey,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(color: AppTheme.neonGreen, width: 1),
-                  ),
+
+              const SizedBox(height: 24),
+
+              // --- 3. SEARCH BAR ---
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceGrey,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                onSubmitted: (value) {
-                  // Direct question asking -> Go to session
-                  context.push('/session');
-                },
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // 4. SUBJECTS SECTION
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Subjects',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                child: TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    hintText: 'Search for subjects...',
+                    hintStyle: TextStyle(color: AppTheme.textGrey),
+                    prefixIcon: Icon(Icons.search, color: AppTheme.textGrey),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                   ),
                 ),
-                // "See All" allows expansion later
-                TextButton(
-                  onPressed: () {},
-                  child: const Text("See All", style: TextStyle(color: AppTheme.textGrey)),
+              ),
+
+              const SizedBox(height: 30),
+
+              // --- 4. SUBJECTS LIST TITLE ---
+              const Text(
+                'Your Subjects',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Horizontal List of Subjects
-            SizedBox(
-              height: 150,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _subjects.length,
-                separatorBuilder: (c, i) => const SizedBox(width: 16),
-                itemBuilder: (context, index) {
-                  final subject = _subjects[index];
-                  return _SubjectTile(
-                    title: subject['name'],
-                    progress: subject['progress'],
-                    color: subject['color'],
-                    icon: subject['icon'],
-                    onTap: () => context.push('/session'), // Navigate to session
-                  );
-                },
               ),
-            ),
+              const SizedBox(height: 16),
 
-            const SizedBox(height: 30),
-
-            // 5. RECENT ACTIVITY SECTION
-            const Text(
-              'Continue Learning',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              // --- 5. SUBJECTS LIST ---
+              Expanded(
+                child: filteredSubjects.isEmpty
+                    ? Center(
+                  child: Text(
+                    'No subjects found for "$_searchQuery"',
+                    style: const TextStyle(color: AppTheme.textGrey),
+                  ),
+                )
+                    : ListView.separated(
+                  // *** FIXED HERE: ADDED BOTTOM PADDING ***
+                  padding: const EdgeInsets.only(bottom: 100),
+                  itemCount: filteredSubjects.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final subject = filteredSubjects[index];
+                    return _SubjectTile(
+                      title: subject['name'],
+                      progress: subject['progress'],
+                      color: subject['color'],
+                      icon: subject['icon'],
+                      onTap: () {
+                        context.push('/subject-history', extra: subject['name']);
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-
-            // Hardcoded recent items for demo
-            const _ActivityItem(
-              title: 'Newton\'s Second Law',
-              subtitle: 'Physics • 2 mins ago',
-              icon: Icons.bolt,
-              color: Colors.blueAccent,
-            ),
-            const _ActivityItem(
-              title: 'Calculus: Derivatives',
-              subtitle: 'Math • 5 hours ago',
-              icon: Icons.calculate,
-              color: Colors.tealAccent,
-            ),
-            const _ActivityItem(
-              title: 'Periodic Table',
-              subtitle: 'Chemistry • 1 day ago',
-              icon: Icons.science,
-              color: Colors.greenAccent,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
-// --- REUSABLE WIDGETS ---
 
 class _SubjectTile extends StatelessWidget {
   final String title;
@@ -235,110 +296,48 @@ class _SubjectTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 120,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppTheme.surfaceGrey,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
-          // Gradient hover effect could go here
+          borderRadius: BorderRadius.circular(20),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Row(
           children: [
-            // Icon Circle
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
-                shape: BoxShape.circle,
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(icon, color: color, size: 28),
             ),
-
-            // Text & Progress
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.white,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: Colors.grey[800],
-                  color: color,
-                  minHeight: 4,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "${(progress * 100).toInt()}%",
-                  style: TextStyle(color: Colors.grey[500], fontSize: 10),
-                ),
-              ],
-            )
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor: Colors.white10,
+                    color: color,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            const Icon(Icons.arrow_forward_ios, color: AppTheme.textGrey, size: 16),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ActivityItem extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-
-  const _ActivityItem({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceGrey,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.03)),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: color, size: 22),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
-              color: Colors.white
-          ),
-        ),
-        subtitle: Text(
-            subtitle,
-            style: const TextStyle(fontSize: 12, color: AppTheme.textGrey)
-        ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppTheme.textGrey),
-        onTap: () {
-          // Resume session logic
-        },
       ),
     );
   }

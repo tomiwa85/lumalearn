@@ -4,14 +4,22 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// Import your screens
+// --- IMPORTS ---
 import '../../shared/widgets/scaffold_with_navbar.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/profile/progress_screen.dart';
 import '../../features/auth/splash_screen.dart';
 import '../../features/auth/login_screen.dart';
-import 'package:lumalearn/features/session/session_screen.dart';
+import '../../features/profile/student_management_screen.dart';
+import '../../features/profile/student_detail_screen.dart';
+import '../../features/profile/scout_dashboard_screen.dart'; // [NEW]
+// Updated Session Imports
+import '../../features/session/session_screen.dart';
+import '../../features/session/subject_history_screen.dart';
+import '../../features/profile/teacher_view/student_subjects_screen.dart';
+import '../../features/profile/teacher_view/teacher_student_history_screen.dart';
+import '../../features/profile/learning_history_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -20,12 +28,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     navigatorKey: rootNavigatorKey,
     initialLocation: '/',
 
-    // 1. LISTEN TO AUTH CHANGES
-    // This tells the router to re-check the "redirect" logic
-    // whenever the user logs in or logs out.
-    refreshListenable: GoRouterRefreshStream(Supabase.instance.client.auth.onAuthStateChange),
+    // LISTEN TO AUTH CHANGES
+    refreshListenable:
+        GoRouterRefreshStream(Supabase.instance.client.auth.onAuthStateChange),
 
-    // 2. THE GUARD LOGIC
+    // THE GUARD LOGIC
     redirect: (context, state) {
       final session = Supabase.instance.client.auth.currentSession;
       final isLoggedIn = session != null;
@@ -33,17 +40,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isLoggingIn = state.matchedLocation == '/login';
       final isSplash = state.matchedLocation == '/';
 
-      // Rule A: If NOT logged in, and trying to go to protected pages -> Go to Login
+      // Rule: If NOT logged in, and trying to go to protected pages -> Go to Login
       if (!isLoggedIn && !isLoggingIn && !isSplash) {
         return '/login';
       }
 
-      // Rule B: If Logged in, and trying to go to Login -> Go to Home
-      if (isLoggedIn && isLoggingIn) {
-        return '/home';
-      }
-
-      // Rule C: Allow Splash screen to handle itself (it waits 3s then navigates)
+      // Note: We removed the "Force Home" rule so sign-up works smoothly
       return null;
     },
 
@@ -92,23 +94,89 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
+      // --- 1. SUBJECT HISTORY SCREEN ---
+      // This is the new "List of Chats" screen
+      GoRoute(
+        path: '/subject-history',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) {
+          // Expecting just the name, e.g., "Physics"
+          final subject = state.extra as String;
+          return SubjectHistoryScreen(subjectName: subject);
+        },
+      ),
+
+      // --- 2. SESSION SCREEN (ACTUAL CHAT) ---
       GoRoute(
         path: '/session',
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const SessionScreen(),
+        builder: (context, state) {
+          // The data passed is a Map: {'subject': 'Math', 'id': '...'}
+          final args = state.extra as Map<String, dynamic>? ?? {};
+          return SessionScreen(sessionArgs: args);
+        },
+      ),
+      GoRoute(
+        path: '/student-detail',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) {
+          final studentData = state.extra as Map<String, dynamic>;
+          return StudentDetailScreen(studentData: studentData);
+        },
+      ),
+      // --- 3. MANAGE STUDENTS SCREEN ---
+      GoRoute(
+        path: '/manage-students',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const StudentManagementScreen(),
+      ),
+      GoRoute(
+        path: '/student-subjects',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) {
+          final studentData = state.extra as Map<String, dynamic>;
+          return StudentSubjectsScreen(studentData: studentData);
+        },
+      ),
+
+      // 2. TEACHER: Specific Subject History
+      GoRoute(
+        path: '/teacher-student-history',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) {
+          final params = state.extra as Map<String, dynamic>;
+          return TeacherStudentHistoryScreen(
+            studentId: params['studentId'],
+            studentName: params['studentName'],
+            subject: params['subject'],
+          );
+        },
+      ),
+
+      // 3. PROFILE: Learning History
+      GoRoute(
+        path: '/learning-history',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const LearningHistoryScreen(),
+      ),
+
+      // 4. SCOUT DASHBOARD
+      GoRoute(
+        path: '/scout-dashboard',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const ScoutDashboardScreen(),
       ),
     ],
   );
 });
 
-// 3. HELPER CLASS
-// This converts the Supabase Stream into something GoRouter can listen to.
+// Helper Class for Stream Listening
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<AuthState> stream) {
     notifyListeners();
     _subscription = stream.asBroadcastStream().listen(
           (dynamic _) => notifyListeners(),
-    );
+        );
   }
 
   late final StreamSubscription<dynamic> _subscription;
